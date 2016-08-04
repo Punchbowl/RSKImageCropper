@@ -172,14 +172,29 @@ typedef NS_ENUM(NSUInteger, RSKImageCropMode) {
 @property (strong, nonatomic, readonly) UILabel *moveAndScaleLabel;
 
 /**
- The Cancel Button.
+ The image for the cancel button
  */
-@property (strong, nonatomic, readonly) UIButton *cancelButton;
+@property (nonatomic, strong) UIImage *cancelButtonImage;
 
 /**
- The Choose Button.
+ The image for the camera button
  */
-@property (strong, nonatomic, readonly) UIButton *chooseButton;
+@property (nonatomic, strong) UIImage *cameraButtonImage;
+
+/**
+ The image for the done button
+ */
+@property (nonatomic, strong) UIImage *doneButtonImage;
+
+/**
+ The text for the top instructions label
+ */
+@property (nonatomic, strong) NSString *instructionsText;
+
+/**
+ The color of the grid lines
+ */
+@property (nonatomic, strong) UIColor *gridLineColor;
 
 /// -------------------------------------------
 /// @name Checking of the Interface Orientation
@@ -321,6 +336,11 @@ typedef NS_ENUM(NSUInteger, RSKImageCropMode) {
  Tells the delegate that crop image has been canceled.
  */
 - (void)imageCropViewControllerDidCancelCrop:(RSKImageCropViewController *)controller;
+
+/**
+ Tells the delegate the user tapped the camera button
+ */
+- (void)imageCropViewControllerDidSelectCameraButton:(RSKImageCropViewController *)controller;
 
 /**
  Tells the delegate that the original image will be cropped.

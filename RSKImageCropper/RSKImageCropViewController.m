@@ -30,6 +30,7 @@
 #import "CGGeometry+RSKImageCropper.h"
 #import "UIApplication+RSKImageCropper.h"
 
+static const int kCropLines = 3;
 static const CGFloat kResetAnimationDuration = 0.4;
 static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 
@@ -50,6 +51,11 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 @property (strong, nonatomic) RSKImageScrollView *imageScrollView;
 @property (strong, nonatomic) RSKTouchView *overlayView;
 @property (strong, nonatomic) CAShapeLayer *maskLayer;
+@property (strong, nonatomic) CAShapeLayer *borderLayer;
+@property (strong, nonatomic) UIView *lineView;
+
+@property (nonatomic, strong) NSMutableArray *horizontalCropLines;
+@property (nonatomic, strong) NSMutableArray *verticalCropLines;
 
 @property (assign, nonatomic) CGRect maskRect;
 @property (copy, nonatomic) UIBezierPath *maskPath;
@@ -58,18 +64,12 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 @property (readonly, nonatomic) CGRect rectForClipPath;
 
 @property (strong, nonatomic) UILabel *moveAndScaleLabel;
-@property (strong, nonatomic) UIButton *cancelButton;
-@property (strong, nonatomic) UIButton *chooseButton;
 
 @property (strong, nonatomic) UITapGestureRecognizer *doubleTapGestureRecognizer;
 @property (strong, nonatomic) UIRotationGestureRecognizer *rotationGestureRecognizer;
 
 @property (assign, nonatomic) BOOL didSetupConstraints;
 @property (strong, nonatomic) NSLayoutConstraint *moveAndScaleLabelTopConstraint;
-@property (strong, nonatomic) NSLayoutConstraint *cancelButtonBottomConstraint;
-@property (strong, nonatomic) NSLayoutConstraint *cancelButtonLeadingConstraint;
-@property (strong, nonatomic) NSLayoutConstraint *chooseButtonBottomConstraint;
-@property (strong, nonatomic) NSLayoutConstraint *chooseButtonTrailingConstraint;
 
 @end
 
@@ -89,7 +89,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         
         _portraitCircleMaskRectInnerEdgeInset = 15.0f;
         _portraitSquareMaskRectInnerEdgeInset = 20.0f;
-        _portraitMoveAndScaleLabelTopAndCropViewTopVerticalSpace = 64.0f;
+        _portraitMoveAndScaleLabelTopAndCropViewTopVerticalSpace = 28.0f;
         _portraitCropViewBottomAndCancelButtonBottomVerticalSpace = 21.0f;
         _portraitCropViewBottomAndChooseButtonBottomVerticalSpace = 21.0f;
         _portraitCancelButtonLeadingAndCropViewLeadingHorizontalSpace = 13.0f;
@@ -144,8 +144,8 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
     [self.view addSubview:self.imageScrollView];
     [self.view addSubview:self.overlayView];
     [self.view addSubview:self.moveAndScaleLabel];
-    [self.view addSubview:self.cancelButton];
-    [self.view addSubview:self.chooseButton];
+    [self.view addSubview:self.lineView];
+    [self configureToolbar];
     
     [self.view addGestureRecognizer:self.doubleTapGestureRecognizer];
     [self.view addGestureRecognizer:self.rotationGestureRecognizer];
@@ -174,6 +174,9 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
     
     self.originalNavigationControllerViewBackgroundColor = self.navigationController.view.backgroundColor;
     self.navigationController.view.backgroundColor = [UIColor blackColor];
+
+    [self updateLines:self.horizontalCropLines horizontal:YES];
+    [self updateLines:self.verticalCropLines horizontal:NO];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
@@ -230,54 +233,51 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
                                                                             constant:constant];
         [self.view addConstraint:self.moveAndScaleLabelTopConstraint];
         
-        // --------------------
-        // The button "Cancel".
-        // --------------------
-        
-        constant = self.portraitCancelButtonLeadingAndCropViewLeadingHorizontalSpace;
-        self.cancelButtonLeadingConstraint = [NSLayoutConstraint constraintWithItem:self.cancelButton attribute:NSLayoutAttributeLeading relatedBy:NSLayoutRelationEqual
-                                                                             toItem:self.view attribute:NSLayoutAttributeLeading multiplier:1.0f
-                                                                           constant:constant];
-        [self.view addConstraint:self.cancelButtonLeadingConstraint];
-        
-        constant = self.portraitCropViewBottomAndCancelButtonBottomVerticalSpace;
-        self.cancelButtonBottomConstraint = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual
-                                                                            toItem:self.cancelButton attribute:NSLayoutAttributeBottom multiplier:1.0f
-                                                                          constant:constant];
-        [self.view addConstraint:self.cancelButtonBottomConstraint];
-        
-        // --------------------
-        // The button "Choose".
-        // --------------------
-        
-        constant = self.portraitCropViewTrailingAndChooseButtonTrailingHorizontalSpace;
-        self.chooseButtonTrailingConstraint = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeTrailing relatedBy:NSLayoutRelationEqual
-                                                                              toItem:self.chooseButton attribute:NSLayoutAttributeTrailing multiplier:1.0f
-                                                                            constant:constant];
-        [self.view addConstraint:self.chooseButtonTrailingConstraint];
-        
-        constant = self.portraitCropViewBottomAndChooseButtonBottomVerticalSpace;
-        self.chooseButtonBottomConstraint = [NSLayoutConstraint constraintWithItem:self.view attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual
-                                                                            toItem:self.chooseButton attribute:NSLayoutAttributeBottom multiplier:1.0f
-                                                                          constant:constant];
-        [self.view addConstraint:self.chooseButtonBottomConstraint];
-        
         self.didSetupConstraints = YES;
     } else {
         if ([self isPortraitInterfaceOrientation]) {
             self.moveAndScaleLabelTopConstraint.constant = self.portraitMoveAndScaleLabelTopAndCropViewTopVerticalSpace;
-            self.cancelButtonBottomConstraint.constant = self.portraitCropViewBottomAndCancelButtonBottomVerticalSpace;
-            self.cancelButtonLeadingConstraint.constant = self.portraitCancelButtonLeadingAndCropViewLeadingHorizontalSpace;
-            self.chooseButtonBottomConstraint.constant = self.portraitCropViewBottomAndChooseButtonBottomVerticalSpace;
-            self.chooseButtonTrailingConstraint.constant = self.portraitCropViewTrailingAndChooseButtonTrailingHorizontalSpace;
         } else {
             self.moveAndScaleLabelTopConstraint.constant = self.landscapeMoveAndScaleLabelTopAndCropViewTopVerticalSpace;
-            self.cancelButtonBottomConstraint.constant = self.landscapeCropViewBottomAndCancelButtonBottomVerticalSpace;
-            self.cancelButtonLeadingConstraint.constant = self.landscapeCancelButtonLeadingAndCropViewLeadingHorizontalSpace;
-            self.chooseButtonBottomConstraint.constant = self.landscapeCropViewBottomAndChooseButtonBottomVerticalSpace;
-            self.chooseButtonTrailingConstraint.constant = self.landscapeCropViewTrailingAndChooseButtonTrailingHorizontalSpace;
         }
     }
+}
+
+#pragma mark - Punchbowl
+
+- (void)configureToolbar {
+    // Bottom Toolbar
+    UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 79, self.view.frame.size.width, 79)];
+    buttonView.backgroundColor = [UIColor colorWithRed: 250.0 / 255.0 green: 250.0 / 255.0 blue: 248.0 / 255.0 alpha:1.0];
+    [self.view addSubview:buttonView];
+
+    UIButton *cancelButton = [self styledButton];
+    [cancelButton setImage:self.cancelButtonImage forState:UIControlStateNormal];
+    [buttonView addSubview:cancelButton];
+    cancelButton.center = CGPointMake(self.view.frame.size.width / 6, 79.0 / 2.0);
+    [cancelButton addTarget:self action:@selector(onCancelButtonTouch:) forControlEvents:UIControlEventTouchUpInside];
+
+    UIButton *cameraButton = [self styledButton];
+    [cameraButton setImage:self.cameraButtonImage forState:UIControlStateNormal];
+    [buttonView addSubview:cameraButton];
+    cameraButton.center = CGPointMake(buttonView.frame.size.width / 2.0, buttonView.frame.size.height / 2.0);
+    [cameraButton addTarget:self action:@selector(onCameraButtonTouch:) forControlEvents:UIControlEventTouchUpInside];
+
+    UIButton *doneButton = [self styledButton];
+    [doneButton setImage:self.doneButtonImage forState:UIControlStateNormal];
+    [buttonView addSubview:doneButton];
+    doneButton.center = CGPointMake(self.view.frame.size.width - (self.view.frame.size.width / 6), 79.0 / 2.0);
+    [doneButton addTarget:self action:@selector(onChooseButtonTouch:) forControlEvents:UIControlEventTouchUpInside];
+}
+
+- (UIButton *)styledButton {
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+    button.backgroundColor = [UIColor colorWithWhite:1.0 alpha:0.75];
+    button.frame = CGRectMake(0, 0, 60, 60);
+    button.layer.cornerRadius = button.frame.size.width / 2.0;
+    button.layer.borderColor = [UIColor colorWithRed: 207.0 / 255.0 green: 204.0 / 255.0 blue: 187.0 / 255.0 alpha:0.7].CGColor;
+    button.layer.borderWidth = 1.0;
+    return button;
 }
 
 #pragma mark - Custom Accessors
@@ -298,6 +298,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         _overlayView = [[RSKTouchView alloc] init];
         _overlayView.receiver = self.imageScrollView;
         [_overlayView.layer addSublayer:self.maskLayer];
+        [_overlayView.layer addSublayer:self.borderLayer];
     }
     return _overlayView;
 }
@@ -314,12 +315,31 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
     return _maskLayer;
 }
 
+- (CAShapeLayer *)borderLayer
+{
+    if (!_borderLayer) {
+        _borderLayer = [CAShapeLayer layer];
+        _borderLayer.fillColor = [UIColor clearColor].CGColor;
+        _borderLayer.strokeColor = [UIColor whiteColor].CGColor;
+        _borderLayer.lineWidth = 3;
+    }
+    return _borderLayer;
+}
+
 - (UIColor *)maskLayerColor
 {
     if (!_maskLayerColor) {
-        _maskLayerColor = [UIColor colorWithRed:0.0f green:0.0f blue:0.0f alpha:0.7f];
+        _maskLayerColor = [UIColor colorWithRed:74.0 / 255.0 green: 74.0 / 255.0 blue: 74.0 / 255.0 alpha:0.85];
     }
     return _maskLayerColor;
+}
+
+- (UIColor *)gridLineColor
+{
+    if (!_gridLineColor) {
+        _gridLineColor = [UIColor colorWithRed:250.0 / 255.0 green:250.0 / 255.0 blue:248.0 / 255.0 alpha:1.0];
+    }
+    return _gridLineColor;
 }
 
 - (UILabel *)moveAndScaleLabel
@@ -328,35 +348,40 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         _moveAndScaleLabel = [[UILabel alloc] init];
         _moveAndScaleLabel.translatesAutoresizingMaskIntoConstraints = NO;
         _moveAndScaleLabel.backgroundColor = [UIColor clearColor];
-        _moveAndScaleLabel.text = RSKLocalizedString(@"Move and Scale", @"Move and Scale label");
-        _moveAndScaleLabel.textColor = [UIColor whiteColor];
+        _moveAndScaleLabel.text = @"Pinch and drag to position your photo";
+        _moveAndScaleLabel.textAlignment = NSTextAlignmentCenter;
+        _moveAndScaleLabel.textColor = [UIColor colorWithRed:237.0 / 255.0 green:237.0 / 255.0 blue:237.0 / 255.0 alpha:1.0];
+        _moveAndScaleLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:16];
         _moveAndScaleLabel.opaque = NO;
     }
     return _moveAndScaleLabel;
 }
 
-- (UIButton *)cancelButton
-{
-    if (!_cancelButton) {
-        _cancelButton = [[UIButton alloc] init];
-        _cancelButton.translatesAutoresizingMaskIntoConstraints = NO;
-        [_cancelButton setTitle:RSKLocalizedString(@"Cancel", @"Cancel button") forState:UIControlStateNormal];
-        [_cancelButton addTarget:self action:@selector(onCancelButtonTouch:) forControlEvents:UIControlEventTouchUpInside];
-        _cancelButton.opaque = NO;
-    }
-    return _cancelButton;
-}
+- (UIView *)lineView {
+    if (!_lineView) {
+        _lineView = [[UIView alloc] initWithFrame:[self.dataSource imageCropViewControllerCustomMaskRect:self]];
+        _lineView.backgroundColor = [UIColor clearColor];
+        _lineView.userInteractionEnabled = NO;
 
-- (UIButton *)chooseButton
-{
-    if (!_chooseButton) {
-        _chooseButton = [[UIButton alloc] init];
-        _chooseButton.translatesAutoresizingMaskIntoConstraints = NO;
-        [_chooseButton setTitle:RSKLocalizedString(@"Choose", @"Choose button") forState:UIControlStateNormal];
-        [_chooseButton addTarget:self action:@selector(onChooseButtonTouch:) forControlEvents:UIControlEventTouchUpInside];
-        _chooseButton.opaque = NO;
+        _horizontalCropLines = [NSMutableArray array];
+        for (int i = 0; i < kCropLines; i++) {
+            UIView *line = [UIView new];
+            line.backgroundColor = self.gridLineColor;
+            line.alpha = 1.0;
+            [_horizontalCropLines addObject:line];
+            [_lineView addSubview:line];
+        }
+
+        _verticalCropLines = [NSMutableArray array];
+        for (int i = 0; i < kCropLines; i++) {
+            UIView *line = [UIView new];
+            line.backgroundColor = self.gridLineColor;
+            line.alpha = 1.0;
+            [_verticalCropLines addObject:line];
+            [_lineView addSubview:line];
+        }
     }
-    return _chooseButton;
+    return _lineView;
 }
 
 - (UITapGestureRecognizer *)doubleTapGestureRecognizer
@@ -475,7 +500,8 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 {
     if (![_maskPath isEqual:maskPath]) {
         _maskPath = maskPath;
-        
+        self.borderLayer.path = [maskPath CGPath];
+
         UIBezierPath *clipPath = [UIBezierPath bezierPathWithRect:self.rectForClipPath];
         [clipPath appendPath:maskPath];
         clipPath.usesEvenOddFillRule = YES;
@@ -514,12 +540,18 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 
 #pragma mark - Action handling
 
-- (void)onCancelButtonTouch:(UIBarButtonItem *)sender
+- (void)onCancelButtonTouch:(UIButton *)sender
 {
     [self cancelCrop];
 }
 
-- (void)onChooseButtonTouch:(UIBarButtonItem *)sender
+- (void)onCameraButtonTouch:(UIButton *)sender {
+    if ([self.delegate respondsToSelector:@selector(imageCropViewControllerDidSelectCameraButton:)]) {
+        [self.delegate imageCropViewControllerDidSelectCameraButton:self];
+    }
+}
+
+- (void)onChooseButtonTouch:(UIButton *)sender
 {
     [self cropImage];
 }
@@ -543,6 +575,24 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
                          }
                          completion:nil];
     }
+}
+
+- (void)updateLines:(NSArray *)lines horizontal:(BOOL)horizontal
+{
+    [lines enumerateObjectsUsingBlock:^(id obj, NSUInteger idx, BOOL *stop) {
+        UIView *line = (UIView *)obj;
+        if (horizontal) {
+            line.frame = CGRectMake(0,
+                                    (self.lineView.frame.size.height / (lines.count + 1)) * (idx + 1),
+                                    self.lineView.frame.size.width,
+                                    1 / [UIScreen mainScreen].scale);
+        } else {
+            line.frame = CGRectMake((self.lineView.frame.size.width / (lines.count + 1)) * (idx + 1),
+                                    0,
+                                    1 / [UIScreen mainScreen].scale,
+                                    self.lineView.frame.size.height);
+        }
+    }];
 }
 
 #pragma mark - Public

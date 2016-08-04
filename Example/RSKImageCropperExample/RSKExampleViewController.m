@@ -28,7 +28,7 @@
 static const CGFloat kPhotoDiameter = 130.0f;
 static const CGFloat kPhotoFrameViewPadding = 2.0f;
 
-@interface RSKExampleViewController () <RSKImageCropViewControllerDelegate>
+@interface RSKExampleViewController () <RSKImageCropViewControllerDelegate, RSKImageCropViewControllerDataSource>
 
 @property (strong, nonatomic) UIView *photoFrameView;
 @property (strong, nonatomic) UIButton *addPhotoButton;
@@ -149,7 +149,8 @@ static const CGFloat kPhotoFrameViewPadding = 2.0f;
 - (void)onAddPhotoButtonTouch:(UIButton *)sender
 {
     UIImage *photo = [UIImage imageNamed:@"photo"];
-    RSKImageCropViewController *imageCropVC = [[RSKImageCropViewController alloc] initWithImage:photo cropMode:RSKImageCropModeCircle];
+    RSKImageCropViewController *imageCropVC = [[RSKImageCropViewController alloc] initWithImage:photo cropMode:RSKImageCropModeCustom];
+    imageCropVC.dataSource = self;
     imageCropVC.delegate = self;
     [self.navigationController pushViewController:imageCropVC animated:YES];
 }
@@ -165,6 +166,16 @@ static const CGFloat kPhotoFrameViewPadding = 2.0f;
 {
     [self.addPhotoButton setImage:croppedImage forState:UIControlStateNormal];
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+#pragma mark - RSKImageCropViewControllerDataSource
+
+- (CGRect)imageCropViewControllerCustomMaskRect:(RSKImageCropViewController *)controller {
+    return CGRectMake(self.view.frame.size.width / 2.0 - (280.0 / 2.0), self.view.frame.size.height / 2.0 - (160.0 / 2.0), 280, 160);
+}
+
+- (UIBezierPath *)imageCropViewControllerCustomMaskPath:(RSKImageCropViewController *)controller {
+    return [UIBezierPath bezierPathWithRect:controller.maskRect];
 }
 
 @end
