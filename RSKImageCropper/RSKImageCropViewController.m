@@ -842,6 +842,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         }
         case RSKImageCropModeCustom: {
             self.maskRect = [self.dataSource imageCropViewControllerCustomMaskRect:self];
+            self.lineView.frame = self.maskRect;
             break;
         }
     }
