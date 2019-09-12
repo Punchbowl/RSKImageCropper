@@ -1008,9 +1008,20 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
             [label4 setTextColor:[UIColor redColor]];
             [self.view addSubview:label4];
 
+
             if ([self.delegate respondsToSelector:@selector(imageCropViewController:didCropImage:usingCropRect:rotationAngle:)]) {
+                UILabel *label6 = [[UILabel alloc]initWithFrame:CGRectMake(150, 300, 30, 40)];
+                label6.text = @"6";
+                [label6 setFont:[UIFont boldSystemFontOfSize:16]];
+                [label6 setTextColor:[UIColor redColor]];
+                [self.view addSubview:label6];
                 [self.delegate imageCropViewController:self didCropImage:croppedImage usingCropRect:cropRect rotationAngle:rotationAngle];
             } else if ([self.delegate respondsToSelector:@selector(imageCropViewController:didCropImage:usingCropRect:)]) {
+                UILabel *label7 = [[UILabel alloc]initWithFrame:CGRectMake(190, 300, 30, 40)];
+                label7.text = @"7";
+                [label7 setFont:[UIFont boldSystemFontOfSize:16]];
+                [label7 setTextColor:[UIColor redColor]];
+                [self.view addSubview:label7];
                 [self.delegate imageCropViewController:self didCropImage:croppedImage usingCropRect:cropRect];
             }
             UILabel *label5 = [[UILabel alloc]initWithFrame:CGRectMake(230, 250, 30, 40)];
