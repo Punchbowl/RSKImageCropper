@@ -974,11 +974,6 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 
 - (void)cropImage
 {
-    UILabel *label = [[UILabel alloc]initWithFrame:CGRectMake(80, 250, 30, 40)];
-    label.text = @"1";
-    [label setFont:[UIFont boldSystemFontOfSize:16]];
-    [label setTextColor:[UIColor redColor]];
-    [self.view addSubview:label];
 
     if ([self.delegate respondsToSelector:@selector(imageCropViewController:willCropImage:)]) {
         [self.delegate imageCropViewController:self willCropImage:self.originalImage];
@@ -987,56 +982,17 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         dispatch_async(dispatch_get_main_queue(), ^{
 
             CGRect cropRect = self.cropRect;
-            UILabel *label2 = [[UILabel alloc]initWithFrame:CGRectMake(110, 250, 30, 40)];
-            label2.text = @"2";
-            [label2 setFont:[UIFont boldSystemFontOfSize:16]];
-            [label2 setTextColor:[UIColor redColor]];
-            [self.view addSubview:label2];
             CGFloat rotationAngle = self.rotationAngle;
-
-            UILabel *label3 = [[UILabel alloc]initWithFrame:CGRectMake(150, 250, 30, 40)];
-            label3.text = @"3";
-            [label3 setFont:[UIFont boldSystemFontOfSize:16]];
-            [label3 setTextColor:[UIColor redColor]];
-            [self.view addSubview:label3];
 
             UIImage *croppedImage = [self croppedImage:self.originalImage cropMode:self.cropMode cropRect:cropRect rotationAngle:rotationAngle zoomScale:self.imageScrollView.zoomScale maskPath:self.maskPath applyMaskToCroppedImage:self.applyMaskToCroppedImage];
 
-            UILabel *label4 = [[UILabel alloc]initWithFrame:CGRectMake(190, 250, 30, 40)];
-            label4.text = @"4";
-            [label4 setFont:[UIFont boldSystemFontOfSize:16]];
-            [label4 setTextColor:[UIColor redColor]];
-            [self.view addSubview:label4];
-
-
             if ([self.delegate respondsToSelector:@selector(imageCropViewController:didCropImage:usingCropRect:rotationAngle:)]) {
-                UILabel *label6 = [[UILabel alloc]initWithFrame:CGRectMake(150, 300, 30, 40)];
-                label6.text = @"6";
-                [label6 setFont:[UIFont boldSystemFontOfSize:16]];
-                [label6 setTextColor:[UIColor redColor]];
-                [self.view addSubview:label6];
                 [self.delegate imageCropViewController:self didCropImage:croppedImage usingCropRect:cropRect rotationAngle:rotationAngle];
             } else if ([self.delegate respondsToSelector:@selector(imageCropViewController:didCropImage:usingCropRect:)]) {
-                UILabel *label7 = [[UILabel alloc]initWithFrame:CGRectMake(190, 300, 30, 40)];
-                label7.text = @"7";
-                [label7 setFont:[UIFont boldSystemFontOfSize:16]];
-                [label7 setTextColor:[UIColor redColor]];
-                [self.view addSubview:label7];
                 [self.delegate imageCropViewController:self didCropImage:croppedImage usingCropRect:cropRect];
             }
-            UILabel *label5 = [[UILabel alloc]initWithFrame:CGRectMake(230, 250, 30, 40)];
-            label5.text = @"5";
-            [label5 setFont:[UIFont boldSystemFontOfSize:16]];
-            [label5 setTextColor:[UIColor redColor]];
-            [self.view addSubview:label5];
         });
     });
-
-    UILabel *labelFinish = [[UILabel alloc]initWithFrame:CGRectMake(295, 250, 100, 40)];
-    labelFinish.text = @"Finished";
-    [labelFinish setFont:[UIFont boldSystemFontOfSize:16]];
-    [labelFinish setTextColor:[UIColor redColor]];
-    [self.view addSubview:labelFinish];
 }
 
 - (void)cancelCrop
