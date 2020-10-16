@@ -281,6 +281,11 @@ typedef NS_ENUM(NSUInteger, RSKImageCropMode) {
  */
 @property (assign, nonatomic) CGFloat landscapeCropViewTrailingAndChooseButtonTrailingHorizontalSpace;
 
+/**
+Vertical offset for button tray. Default value of 79.
+*/
+@property (assign, nonatomic) CGFloat buttonTrayVerticalOffset;
+
 @end
 
 /**

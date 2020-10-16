@@ -102,6 +102,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         _landscapeCropViewBottomAndChooseButtonBottomVerticalSpace = 12.0f;
         _landscapeCancelButtonLeadingAndCropViewLeadingHorizontalSpace = 13.0;
         _landscapeCropViewTrailingAndChooseButtonTrailingHorizontalSpace = 13.0;
+        _buttonTrayVerticalOffset = 79;
     }
     return self;
 }
@@ -247,7 +248,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 
 - (void)configureToolbar {
     // Bottom Toolbar
-    UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - 79, self.view.frame.size.width, 79)];
+    UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - self.buttonTrayVerticalOffset, self.view.frame.size.width, 83)];
     buttonView.backgroundColor = [UIColor colorWithRed: 250.0 / 255.0 green: 250.0 / 255.0 blue: 248.0 / 255.0 alpha:1.0];
     [self.view addSubview:buttonView];
 
