@@ -103,6 +103,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
         _landscapeCancelButtonLeadingAndCropViewLeadingHorizontalSpace = 13.0;
         _landscapeCropViewTrailingAndChooseButtonTrailingHorizontalSpace = 13.0;
         _buttonTrayVerticalOffset = 79;
+        _buttonTrayHeight = 83;
     }
     return self;
 }
@@ -248,14 +249,14 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
 
 - (void)configureToolbar {
     // Bottom Toolbar
-    UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - self.buttonTrayVerticalOffset, self.view.frame.size.width, 83)];
+    UIView *buttonView = [[UIView alloc] initWithFrame:CGRectMake(0, self.view.frame.size.height - self.buttonTrayVerticalOffset, self.view.frame.size.width, self.buttonTrayHeight)];
     buttonView.backgroundColor = [UIColor colorWithRed: 250.0 / 255.0 green: 250.0 / 255.0 blue: 248.0 / 255.0 alpha:1.0];
     [self.view addSubview:buttonView];
 
     UIButton *cancelButton = [self styledButton];
     [cancelButton setImage:self.cancelButtonImage forState:UIControlStateNormal];
     [buttonView addSubview:cancelButton];
-    cancelButton.center = CGPointMake(self.view.frame.size.width / 6, 79.0 / 2.0);
+    cancelButton.center = CGPointMake(self.view.frame.size.width / 6, buttonView.frame.size.height / 2.0);
     [cancelButton addTarget:self action:@selector(onCancelButtonTouch:) forControlEvents:UIControlEventTouchUpInside];
 
     UIButton *cameraButton = [self styledButton];
@@ -267,7 +268,7 @@ static const CGFloat kLayoutImageScrollViewAnimationDuration = 0.25;
     UIButton *doneButton = [self styledButton];
     [doneButton setImage:self.doneButtonImage forState:UIControlStateNormal];
     [buttonView addSubview:doneButton];
-    doneButton.center = CGPointMake(self.view.frame.size.width - (self.view.frame.size.width / 6), 79.0 / 2.0);
+    doneButton.center = CGPointMake(self.view.frame.size.width - (self.view.frame.size.width / 6), buttonView.frame.size.height / 2.0);
     [doneButton addTarget:self action:@selector(onChooseButtonTouch:) forControlEvents:UIControlEventTouchUpInside];
 }
 

@@ -284,7 +284,12 @@ typedef NS_ENUM(NSUInteger, RSKImageCropMode) {
 /**
 Vertical offset for button tray. Default value of 79.
 */
-@property (assign, nonatomic) CGFloat buttonTrayVerticalOffset;
+@property (assign, nonatomic) NSInteger buttonTrayVerticalOffset;
+
+/**
+The height for the button tray view. Default value of 83.0
+*/
+@property (assign, nonatomic) CGFloat buttonTrayHeight;
 
 @end
 
